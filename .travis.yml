@@ -1,0 +1,24 @@
+sudo: required
+language: generic
+services:
+  - docker
+
+before_install:
+  - docker build -t ivorontsova/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run -e CI=true ivorontsova/react-test npm test
+
+after_success:
+  - docker build -t ivorontsova/multi-client ./client
+  - docker build -t ivorontsova/multi-nginx ./nginx
+  - docker build -t ivorontsova/multi-server ./server
+  - docker build -t ivorontsova/multi-worker ./worker
+    # login to the docker cli
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+    # take images and push to the hub
+  - docker push ivorontsova/multi-client
+  - docker push ivorontsova/multi-nginx 
+  - docker push ivorontsova/multi-server 
+  - docker push ivorontsova/multi-worker  
+  
